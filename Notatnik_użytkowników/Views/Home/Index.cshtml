@@ -1,0 +1,132 @@
+﻿@model IEnumerable<Notatnik_użytkowników.Models.UsersModel>
+
+@{
+    ViewData["Title"] = "Notatnik użytkowników";
+}
+
+<p>
+    <a href="@Url.Action("Create","Home", null)" id="Create" class="btn btn-primary" data_modal="true">Dodaj użytkownika</a>
+</p>
+
+<div class=" table-responsive">
+    <table class="table table-striped table-bordered table-light">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Surname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Birth)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SelectedGender)
+            </th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <a href="@Url.Action("Edit","Home", new {id=item.Id })" id="Edit" class="text-reset" data_modal="true">@Html.DisplayFor(modelItem => item.Name)</a>
+                </td>
+                <td>
+                    <a href="@Url.Action("Edit","Home", new {id=item.Id })" id="Edit" class="text-reset" data_modal="true">@Html.DisplayFor(modelItem => item.Surname)</a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Birth)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SelectedGender)
+                </td>
+
+            </tr>
+        }
+
+    </table>
+</div>
+
+<div>
+    <p>Generuj raport w formacie:</p>
+    <a href="@Url.Action("GenerateReport", "Home", new { format = "csv" })" class="btn btn-secondary">CSV</a>
+</div>
+
+<div id="createNewModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title page-header" id="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+
+            $("a[data_modal='true']").click(function (e) {
+                e.preventDefault(); // Zatrzymaj domyślną nawigację
+
+                var url = $(this).attr("href");
+
+                var text = "Edytuj użytkownika";
+                if ($(this).attr("id") == "Create")
+                    text = "Dodaj użytkownika";
+
+                $.get(url, function (data) {
+
+                        $("#modal-title").text(text);
+                        $("#createNewModal .modal-body").html(data);
+                    $("#createNewModal").modal("show");
+
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            });
+
+
+            $("#createNewModal").on("submit", "form", function (e) {
+                e.preventDefault();
+
+                var form = $(this);
+                var url = form.attr("action");
+                var data = form.serialize();
+
+                $.post(url, data, function (response) {
+                    if (response.success) {
+                        $("#createNewModal").modal("hide"); // Schowaj modal po sukcesie
+                        location.reload(); // Przeładuj stronę po sukcesie
+                    } else {
+                        // Obsługa błędów walidacji lub innych błędów
+                        var errors = response.errors;
+                        for (const val in errors) {
+                            var error=errors[val];
+                            if (error.includes("Imie"))
+                                $("#NameError").text(error);
+                            if (error.includes("Nazwisko"))
+                                $("#SurnameError").text(error);
+                            if (error.includes("Data"))
+                                $("#DataError").text(error);
+                            if (error.includes("Płeć"))
+                                $("#GenderError").text(error);
+                        }
+                    }
+                });
+            });
+
+
+        });
+
+
+
+    </script>
+}

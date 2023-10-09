@@ -1,0 +1,81 @@
+﻿@model Notatnik_użytkowników.Models.UsersModel
+
+@using (Html.BeginForm("Save", "Home", FormMethod.Post, new { @id = "userForm" }))
+{
+@Html.AntiForgeryToken()
+
+<input type="hidden" id="userId" name="Id" value="@Model.Id" />
+
+<div class="form-group">
+    @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label" })
+    @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger", @id="NameError" })
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(model => model.Surname, htmlAttributes: new { @class = "control-label" })
+    @Html.EditorFor(model => model.Surname, new { htmlAttributes = new { @class = "form-control" } })
+    @Html.ValidationMessageFor(model => model.Surname, "", new { @class = "text-danger", @id = "SurnameError" })
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(model => model.Birth, htmlAttributes: new { @class = "control-label" })
+    @Html.EditorFor(model => model.Birth, new { htmlAttributes = new { @class = "form-control", @max = @DateTime.Now.ToString("yyyy-MM-dd") } })
+    @Html.ValidationMessageFor(model => model.Birth, "", new { @class = "text-danger", @id = "DateError" })
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(model => model.SelectedGender, htmlAttributes: new { @class = "control-label" })
+    @Html.DropDownListFor(model => model.SelectedGender, new SelectList(Model.GenderOptions, "Value", "Text"), new { @class = "form-control" })
+    @Html.ValidationMessageFor(model => model.SelectedGender, "", new { @class = "text-danger", @id = "GenderError" })
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(model => model.Attributes, new { @class = "control-label" })
+    <div id="attributesContainer">
+        @if (Model.Attributes != null)
+        {
+            var index = 0;
+            foreach (var attribute in Model.Attributes)
+            {
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="Attributes[@index].Key" value="@(attribute.Item1)" placeholder="Nazwa atrybutu" />
+                    <input type="text" class="form-control" name="Attributes[@index].Value" value="@(attribute.Item2)" placeholder="Atrybut" />
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-danger remove-attribute">Usuń</button>
+                    </div>
+                </div>
+                index++;
+            }
+        }
+    </div>
+    <input class="btn btn-success" type="button" id="addAttribute" value="Dodaj atrybut" />
+</div>
+
+    <div class="form-group">
+        <input type="submit" value="Save" class="btn btn-primary" />
+    </div>
+
+<script>
+    $(document).ready(function () {
+
+        var attributeIndex = @(Model.Attributes != null ? Model.Attributes.Count : 0);
+        $("#addAttribute").click(function () {
+            var newAttributeHtml = '<div class="input-group mb-3">' +
+                '<input type="text" class="form-control" name="Attributes[' + attributeIndex + '].Key" placeholder="Nazwa atrybutu" />' +
+                '<input type="text" class="form-control" name="Attributes[' + attributeIndex + '].Value" placeholder="Atrybut" />' +
+                '<div class="input-group-append">' +
+                '<button type="button" class="btn btn-danger remove-attribute">Usuń</button>' +
+                '</div>' +
+                '</div>';
+
+            $("#attributesContainer").append(newAttributeHtml);
+            attributeIndex++;
+        });
+
+        $("#attributesContainer").on("click", ".remove-attribute", function () {
+            $(this).closest(".input-group").remove();
+        });
+    });
+</script>
+}
